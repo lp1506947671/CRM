@@ -47,6 +47,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'rbac.middlewares.rbac.RbacMiddleware'
 ]
 
 ROOT_URLCONF = 'crm.urls'
@@ -125,3 +126,5 @@ STATIC_URL = '/static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # STATICFILES_DIRS = [os.path.join(BASE_DIR, "static"), os.path.join(BASE_DIR, 'web', "static")]
+PERMISSION_SESSION_KEY = "permission_url_list_key"
+VALID_URL_LIST = ['/login/', '/admin/.*']
