@@ -24,7 +24,7 @@ pymysql.install_as_MySQLdb()
 ```
 4.创建超级用户
 ```shell script
-# 设置密码
+# 设置超级账号和密码(jason/Abc1234%/jason@163.com)
 python manage.py createsuperuser 
 # 修改密码
 python manage.py changepassword 用户名
