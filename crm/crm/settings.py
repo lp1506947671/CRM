@@ -123,5 +123,6 @@ STATIC_URL = '/static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # STATICFILES_DIRS = [os.path.join(BASE_DIR, "static"), os.path.join(BASE_DIR, 'web', "static")]
+MENU_SESSION_KEY = 'menu_session_key'
 PERMISSION_SESSION_KEY = "permission_url_list_key"
 VALID_URL_LIST = ['/login/', '/admin/.*']
