@@ -1,7 +1,9 @@
 import os
 import mimetypes
+from functools import wraps
+
 from django.shortcuts import render, redirect
-from django.http import FileResponse
+from django.http import FileResponse, HttpResponseRedirect
 from django.conf import settings
 import xlrd
 
@@ -9,6 +11,20 @@ from web import models
 from web.forms.customer import CustomerForm
 
 
+def is_login(func):
+    @wraps(func)
+    def wrap(request, *args, **kwargs):
+        session_id = request.COOKIES.get("session_id")
+
+        if not session_id or not request.session.get(session_id) or not request.session.get(session_id).get("is_login"):
+            return HttpResponseRedirect('/login/')
+
+        return func(request)
+
+    return wrap
+
+
+@is_login
 def customer_list(request):
     """
     客户列表
