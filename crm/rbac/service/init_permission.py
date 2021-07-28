@@ -10,6 +10,8 @@ def init_permission(current_user, request):
                                                                                       "permissions__url",
                                                                                       "permissions__menu_id",
                                                                                       "permissions__pid_id",
+                                                                                      "permissions__pid__title",
+                                                                                      "permissions__pid__url",
                                                                                       "permissions__menu__title",
                                                                                       "permissions__menu__icon"
                                                                                       ).distinct()
@@ -17,7 +19,10 @@ def init_permission(current_user, request):
     permission_list = []
     menu_dict = {}
     for item in permission_queryset:
-        a = {'id': item["permissions__id"], 'url': item["permissions__url"], "pid": item["permissions__pid_id"]}
+        a = {'id': item["permissions__id"], "title": item["permissions__title"], 'url': item["permissions__url"],
+             "pid": item["permissions__pid_id"],
+             'p_title': item['permissions__pid__title'],
+             'p_url': item['permissions__pid__url'], }
         permission_list.append(a)
         menu_id = item["permissions__menu_id"]
         if not menu_id:

@@ -39,3 +39,8 @@ def multi_menu(request):
                 val['class'] = ''
             ordered_dict[key] = val
     return {'menu_dict': ordered_dict}
+
+
+@register.inclusion_tag('../templates/breadcrumb.html')
+def bread_crumb(request):
+    return {'url_record': request.url_record}

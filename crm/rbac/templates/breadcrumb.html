@@ -1,0 +1,10 @@
+<ol class="breadcrumb no-radius no-margin" style="border-bottom: 1px solid #ddd;">
+    {% for foo in url_record %}
+        {% if foo.class %}
+            <li class="active">{{ foo.title }}</li>
+        {% else %}
+            <li><a href={{ foo.url }}>{{ foo.title }}</a></li>
+        {% endif %}
+
+    {% endfor %}
+</ol>
