@@ -22,9 +22,11 @@ class RbacMiddleware:
         if not permission_list:
             return HttpResponse("未获取到用户权限信息,请登录!")
         flag = False
-        for url in permission_list:
-            reg = f"^{url}$"
+        for item in permission_list:
+            reg = f"^{item['url']}$"
+
             if re.match(reg, current_url):
+                request.current_selected_permission = item['pid'] or item['id']
                 flag = True
                 break
         if not flag:
