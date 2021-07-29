@@ -44,3 +44,10 @@ def multi_menu(request):
 @register.inclusion_tag('../templates/breadcrumb.html')
 def bread_crumb(request):
     return {'url_record': request.url_record}
+
+
+@register.filter()
+def has_permission(request, name):
+    if name in request.session[settings.PERMISSION_SESSION_KEY]:
+        return True
+    return False

@@ -18,12 +18,12 @@ class RbacMiddleware:
         for valid_url in settings.VALID_URL_LIST:
             if re.match(valid_url, current_url):  # 白名单中的URL无需权限验证即可访问
                 return None
-        permission_list = request.session.get(settings.PERMISSION_SESSION_KEY)
-        if not permission_list:
+        permission_dict = request.session.get(settings.PERMISSION_SESSION_KEY)
+        if not permission_dict:
             return HttpResponse("未获取到用户权限信息,请登录!")
         url_record = [{"title": "首页", "url": "#"}]
         flag = False
-        for item in permission_list:
+        for item in permission_dict.values():
             reg = f"^{item['url']}$"
 
             if re.match(reg, current_url):
