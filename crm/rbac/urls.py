@@ -8,8 +8,7 @@ from web.views import customer, payment, account
 app_name = 'rbc'
 urlpatterns = [
     re_path(r'^role/list/$', role.role_list, name='role_list'),
-    re_path(r'^role/edit/$', role.role_edit, name="role_edit"),
-    re_path(r'^role/del/$', role.role_del, name="role_del"),
     re_path(r'^role/add/$', role.role_add, name="role_add"),
-
+    re_path(r'^role/edit/(?P<pk>\d+)/$', role.role_edit, name="role_edit"),
+    re_path(r'^role/del/(?P<pk>\d+)/$', role.role_del, name="role_del"),
 ]
