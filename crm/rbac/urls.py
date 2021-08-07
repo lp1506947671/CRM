@@ -1,8 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 from django.urls import re_path
-from rbac.views import role, user
-from web.views import customer, payment, account
+from rbac.views import role, user, menu
 
 app_name = 'rbac'
 urlpatterns = [
@@ -15,5 +14,10 @@ urlpatterns = [
     re_path(r'^user/add/$', user.user_add, name="user_add"),
     re_path(r'^user/edit/(?P<pk>\d+)/$', user.user_edit, name="user_edit"),
     re_path(r'^user/del/(?P<pk>\d+)/$', user.user_del, name="user_del"),
-    re_path(r'^user/reset/password/(?P<pk>\d+)/$', user.user_reset_pwd, name="user_reset_pwd")
+    re_path(r'^user/reset/password/(?P<pk>\d+)/$', user.user_reset_pwd, name="user_reset_pwd"),
+
+    re_path(r'^menu/list/$', menu.menu_list, name='menu_list'),
+    re_path(r'^menu/add/$', menu.menu_add, name='menu_add'),
+    re_path(r'^menu/edit/(?P<pk>\d+)/$', menu.menu_edit, name='menu_edit'),
+    re_path(r'^menu/del/(?P<pk>\d+)/$', menu.menu_del, name='menu_del'),
 ]
