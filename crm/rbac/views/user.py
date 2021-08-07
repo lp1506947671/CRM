@@ -4,7 +4,7 @@ from django.http import HttpResponse
 from django.shortcuts import render, redirect
 from django.urls import reverse
 
-from rbac.forms.user import UserModelForm, UpdateUserModelForm
+from rbac.forms.user import UserModelForm, UpdateUserModelForm, ResetPasswordUserModelForm
 from rbac.models import UserInfo
 
 
@@ -22,7 +22,7 @@ def user_add(request):
         user_form.save()
         return redirect(reverse("rbac:user_list"))
 
-    return render(request, 'role_change.html', {'form': "添加客户成功"})
+    return render(request, 'role_change.html', {'form': user_form})
 
 
 def user_edit(request, pk):
@@ -47,3 +47,17 @@ def user_del(request, pk):
     if not obj:
         return HttpResponse("角色不存在")
     return redirect(origin_url)
+
+
+def user_reset_pwd(request, pk):
+    obj = UserInfo.objects.filter(id=pk).first()
+    if not obj:
+        return HttpResponse("角色不存在")
+    if request.method == "GET":
+        user_form = ResetPasswordUserModelForm(instance=obj)
+        return render(request, "role_change.html", {'form': user_form})
+    user_form = ResetPasswordUserModelForm(instance=obj, data=request.POST)
+    if user_form.is_valid():
+        user_form.save()
+        return redirect(reverse('rbac:user_list'))
+    return render(request, "role_change.html", {"form": user_form})

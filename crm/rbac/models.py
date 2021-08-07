@@ -16,7 +16,7 @@ class Permission(models.Model):
     """权限表"""
     title = models.CharField(verbose_name='标题', max_length=32)
     url = models.CharField(verbose_name='含正则的URL', max_length=128)
-    name = models.CharField(verbose_name="url别名",unique=True, max_length=64)
+    name = models.CharField(verbose_name="url别名", unique=True, max_length=64)
     menu = models.ForeignKey(
         verbose_name="所属菜单", on_delete=models.SET_NULL, to="Menu", null=True, blank=True,
         help_text='null表示不是菜单;非null表示是二级菜单')
