@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 from django import forms
+
 from django.utils.safestring import mark_safe
 
 from rbac import models
+from rbac.forms.base_forms import MyBaseForm
 
 ICON_LIST = [
     ['fa-hand-scissors-o', '<i aria-hidden="true" class="fa fa-hand-scissors-o"></i>'],
@@ -49,3 +51,9 @@ class MenuForm(forms.ModelForm):
             'title': forms.TextInput(attrs={"class": 'form-control'}),
             'icon': forms.RadioSelect(choices=ICON_LIST, attrs={'class': 'clearfix'})
         }
+
+
+class SecondMenuForm(MyBaseForm):
+    class Meta:
+        model = models.Permission
+        exclude = ['pid']

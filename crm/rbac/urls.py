@@ -20,4 +20,8 @@ urlpatterns = [
     re_path(r'^menu/add/$', menu.menu_add, name='menu_add'),
     re_path(r'^menu/edit/(?P<pk>\d+)/$', menu.menu_edit, name='menu_edit'),
     re_path(r'^menu/del/(?P<pk>\d+)/$', menu.menu_del, name='menu_del'),
+
+    re_path(r'^second/menu/add/(?P<menu_id>\d+)$', menu.second_menu_add, name='second_menu_add'),
+    re_path(r'^second/menu/edit/(?P<pk>\d+)/$', menu.second_menu_edit, name='second_menu_edit'),
+    re_path(r'^second/menu/del/(?P<pk>\d+)/$', menu.second_menu_del, name='second_menu_del'),
 ]
