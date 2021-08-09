@@ -57,3 +57,9 @@ class SecondMenuForm(MyBaseForm):
     class Meta:
         model = models.Permission
         exclude = ['pid']
+
+
+class PermissionMenuForm(MyBaseForm):
+    class Meta:
+        model = models.Permission
+        fields = ['title', "name", "url"]
