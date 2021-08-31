@@ -4,6 +4,7 @@ from django.http import HttpResponse
 from django.shortcuts import render, redirect
 from rbac.forms.menu import MenuForm, SecondMenuForm, PermissionMenuForm
 from rbac.models import Menu, Permission
+from rbac.service.routers import get_all_url_dict
 from rbac.service.urls import memory_reverse
 
 
@@ -141,3 +142,9 @@ def permission_del(request, pk):
     if not obj:
         return HttpResponse("权限不存在")
     return redirect(origin_url)
+
+
+def multi_permissions(request):
+    result = get_all_url_dict()
+
+    return HttpResponse("ok")
