@@ -204,8 +204,9 @@ def multi_permissions(request):
     # 创建表单集 formset_factory:MultiEditPermission
     update_formset_class = formset_factory(MultiEditPermission, extra=0)
     # 生成表单集 update_formset_class:initial
+    update_initial = [row_dict for name, row_dict in permission_dict.items() if name in update_list]
     update_formset = update_formset_class(
-        initial=[row_dict for name, row_dict in router_url_dict.items() if name in update_list])
+        initial=update_initial)
 
     result = {
         "generate_formset": generate_formset,

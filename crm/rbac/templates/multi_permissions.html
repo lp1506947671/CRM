@@ -3,6 +3,7 @@
 {% block bread_crumb %}{% endblock %}
 {% block content %}
     <div class="luffy-container">
+        {% csrf_token %}
         <div class="panel panel-default">
             <!-- Default panel contents -->
             <div class="panel-heading">

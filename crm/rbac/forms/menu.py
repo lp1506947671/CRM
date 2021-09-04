@@ -83,13 +83,27 @@ class MultiAddPermission(MyBaseForm):
 
 class MultiEditPermission(MyBaseForm):
     id = forms.IntegerField(widget=forms.HiddenInput())
+    menu_id = forms.ChoiceField(
+        choices=[(None, '-----')] + list(models.Menu.objects.values_list('id', 'title')),
+        widget=forms.Select(attrs={'class': "form-control"}),
+        required=False,
+
+    )
+
+    pid_id = forms.ChoiceField(
+        choices=[(None, '-----')] + list(
+            models.Permission.objects.filter(pid__isnull=True).exclude(menu__isnull=True).values_list('id', 'title')),
+        widget=forms.Select(attrs={'class': "form-control"}),
+        required=False,
+    )
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
     class Meta:
         model = models.Permission
-        fields = ['id', 'title', "url", "name", "menu", "pid"]
+        fields = ['id', 'title', "url", "name", "menu_id", "pid_id"]
+
 
 # class MultiEditPermission(forms.Form):
 #     id = forms.IntegerField(
@@ -118,8 +132,9 @@ class MultiEditPermission(MyBaseForm):
 #         required=False,
 #     )
 #
-#     def __init__(self, *args, **kwargs):
-#         super().__init__(*args, **kwargs)
-#         self.fields['menu_id'].choices += models.Menu.objects.values_list('id', 'title')
-#         self.fields['pid_id'].choices += models.Permission.objects.filter(pid__isnull=True).exclude(
-#             menu__isnull=True).values_list('id', 'title')
+#
+# def __init__(self, *args, **kwargs):
+#     super().__init__(*args, **kwargs)
+#     self.fields['menu_id'].choices += models.Menu.objects.values_list('id', 'title')
+#     self.fields['pid_id'].choices += models.Permission.objects.filter(pid__isnull=True).exclude(
+#         menu__isnull=True).values_list('id', 'title')
