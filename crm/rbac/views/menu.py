@@ -1,8 +1,11 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+from collections import OrderedDict
+
+from django.forms import formset_factory
 from django.http import HttpResponse
 from django.shortcuts import render, redirect
-from rbac.forms.menu import MenuForm, SecondMenuForm, PermissionMenuForm
+from rbac.forms.menu import MenuForm, SecondMenuForm, PermissionMenuForm, MultiAddPermission, MultiEditPermission
 from rbac.models import Menu, Permission
 from rbac.service.routers import get_all_url_dict
 from rbac.service.urls import memory_reverse
@@ -145,6 +148,69 @@ def permission_del(request, pk):
 
 
 def multi_permissions(request):
-    result = get_all_url_dict()
+    """批量操作权限"""
+    """
+    router_url_dict格式
+       {
+           'rbac:role_list':{'name': 'rbac:role_list', 'url': '/rbac/role/list/'},
+           'rbac:role_add':{'name': 'rbac:role_add', 'url': '/rbac/role/add/'},
+           ....
+       }
+    router_name_set格式   
+    {
+        'rbac:role_list': {'id':1,'title':'角色列表',name:'rbac:role_list',url.....},
+        'rbac:role_add': {'id':1,'title':'添加角色',name:'rbac:role_add',url.....},
+        ...
+    } 
+    values:
+    <QuerySet [(‘红楼梦’, 300), (‘水浒传’, 200)]>  
+    values_list:
+    <QuerySet [{‘book__title’: ‘红楼梦’, ‘book__price’: 300}, {‘book__title’: ‘水浒传’, ‘book__price’: 200}]>
+       """
+    #  1.获取项目中所有的router_url
+    router_url_dict = get_all_url_dict()
+    #  2. 获取所有router_url的别名
+    router_name_set = set(router_url_dict.keys())
 
-    return HttpResponse("ok")
+    #  3.获取Permission中所有的权限并将permission中权限存到permission_name_set和permission_dict中
+    permissions = Permission.objects.all().values("id", "title", "url", "name", "menu_id", "pid_id")
+    permission_dict = OrderedDict()
+    permission_name_set = set()
+    for row in permissions:
+        permission_dict[row['name']] = row
+        permission_name_set.add(row['name'])
+
+    #  4.遍历permission_dict并且判断是路由和数据库中都存在但是不相等的情况
+    for name, value in permission_dict.items():
+        router_url_row = router_url_dict.get(name)
+        if not router_url_row:
+            continue
+        if value['url'] != router_url_row["url"]:
+            value['url'] = "路由和数据库中的不一致"
+
+    # 计算应该增加的name:+
+    generate_name_list = router_name_set - permission_name_set
+    # 创建表单集 formset_factory:MultiAddPermission
+    generate_formset_class = formset_factory(MultiAddPermission, extra=0)
+    # 生成表单集 generate_formset_class:initial
+    generate_formset = generate_formset_class(
+        initial=[row_dict for name, row_dict in router_url_dict.items() if name in generate_name_list])
+
+    # 计算应该删除的name:-
+    delete_name_list = permission_name_set - router_name_set
+    delete_row_list = [row_dict for name, row_dict in permission_dict.items() if name in delete_name_list]
+    # 计算应该更新的name:&
+    update_list = permission_name_set & router_name_set
+    # 创建表单集 formset_factory:MultiEditPermission
+    update_formset_class = formset_factory(MultiEditPermission, extra=0)
+    # 生成表单集 update_formset_class:initial
+    update_formset = update_formset_class(
+        initial=[row_dict for name, row_dict in router_url_dict.items() if name in update_list])
+
+    result = {
+        "generate_formset": generate_formset,
+        "delete_row_list": delete_row_list,
+        "update_formset": update_formset
+    }
+
+    return render(request, "multi_permissions.html", result)

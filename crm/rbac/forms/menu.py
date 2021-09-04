@@ -5,7 +5,6 @@ from django import forms
 from django.utils.safestring import mark_safe
 
 from rbac import models
-from rbac.forms.base_forms import MyBaseForm
 
 ICON_LIST = [
     ['fa-hand-scissors-o', '<i aria-hidden="true" class="fa fa-hand-scissors-o"></i>'],
@@ -43,6 +42,14 @@ ICON_LIST = [
 ICON_LIST = [[item[0], mark_safe(item[1])] for item in ICON_LIST]
 
 
+class MyBaseForm(forms.ModelForm):
+
+    def __init__(self, *args, **kwargs):
+        super(MyBaseForm, self).__init__(*args, **kwargs)
+        for name, value in self.fields.items():
+            value.widget.attrs['class'] = 'form-control'
+
+
 class MenuForm(forms.ModelForm):
     class Meta:
         model = models.Menu
@@ -63,3 +70,56 @@ class PermissionMenuForm(MyBaseForm):
     class Meta:
         model = models.Permission
         fields = ['title', "name", "url"]
+
+
+class MultiAddPermission(MyBaseForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+    class Meta:
+        model = models.Permission
+        exclude = ['id']
+
+
+class MultiEditPermission(MyBaseForm):
+    id = forms.IntegerField(widget=forms.HiddenInput())
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+    class Meta:
+        model = models.Permission
+        fields = ['id', 'title', "url", "name", "menu", "pid"]
+
+# class MultiEditPermission(forms.Form):
+#     id = forms.IntegerField(
+#         widget=forms.HiddenInput()
+#     )
+#
+#     title = forms.CharField(
+#         widget=forms.TextInput(attrs={'class': "form-control"})
+#     )
+#     url = forms.CharField(
+#         widget=forms.TextInput(attrs={'class': "form-control"})
+#     )
+#     name = forms.CharField(
+#         widget=forms.TextInput(attrs={'class': "form-control"})
+#     )
+#     menu_id = forms.ChoiceField(
+#         choices=[(None, '-----')],
+#         widget=forms.Select(attrs={'class': "form-control"}),
+#         required=False,
+#
+#     )
+#
+#     pid_id = forms.ChoiceField(
+#         choices=[(None, '-----')],
+#         widget=forms.Select(attrs={'class': "form-control"}),
+#         required=False,
+#     )
+#
+#     def __init__(self, *args, **kwargs):
+#         super().__init__(*args, **kwargs)
+#         self.fields['menu_id'].choices += models.Menu.objects.values_list('id', 'title')
+#         self.fields['pid_id'].choices += models.Permission.objects.filter(pid__isnull=True).exclude(
+#             menu__isnull=True).values_list('id', 'title')

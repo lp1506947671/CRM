@@ -25,7 +25,6 @@ class RbacMiddleware:
         flag = False
         for item in permission_dict.values():
             reg = f"^{item['url']}$"
-
             if re.match(reg, current_url):
                 request.current_selected_permission = item['pid'] or item['id']
                 if item["pid"]:
@@ -38,7 +37,7 @@ class RbacMiddleware:
                     ])
                 flag = True
                 break
-        request.url_record =url_record
+        request.url_record = url_record
         if not flag:
             return HttpResponse("无权限访问")
 
