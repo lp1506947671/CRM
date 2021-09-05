@@ -100,11 +100,14 @@ class MultiEditPermission(MyBaseForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
+    def clean(self):
+        return self.cleaned_data
+
     class Meta:
         model = models.Permission
         fields = ['id', 'title', "url", "name", "menu_id", "pid_id"]
 
-
+#
 # class MultiEditPermission(forms.Form):
 #     id = forms.IntegerField(
 #         widget=forms.HiddenInput()
@@ -132,9 +135,8 @@ class MultiEditPermission(MyBaseForm):
 #         required=False,
 #     )
 #
-#
-# def __init__(self, *args, **kwargs):
-#     super().__init__(*args, **kwargs)
-#     self.fields['menu_id'].choices += models.Menu.objects.values_list('id', 'title')
-#     self.fields['pid_id'].choices += models.Permission.objects.filter(pid__isnull=True).exclude(
-#         menu__isnull=True).values_list('id', 'title')
+#     def __init__(self, *args, **kwargs):
+#         super().__init__(*args, **kwargs)
+#         self.fields['menu_id'].choices += models.Menu.objects.values_list('id', 'title')
+#         self.fields['pid_id'].choices += models.Permission.objects.filter(pid__isnull=True).exclude(
+#             menu__isnull=True).values_list('id', 'title')
