@@ -116,7 +116,13 @@
                             <i class="fa fa-plus-circle" aria-hidden="true"></i>
                             新建
                         </a>
+                        <a href="{% memory_url request 'rbac:multi_permissions' %}" class="right btn btn-xs btn-primary"
+                       style="padding: 2px 8px;margin: -3px 0;">
+                        <i class="fa fa-mail-forward" aria-hidden="true"></i>
+                        批量操作
+                    </a>
                     {% endif %}
+
                 </div>
                 <!-- Table -->
                 <table class="table">
