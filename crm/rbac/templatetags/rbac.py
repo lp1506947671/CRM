@@ -35,7 +35,6 @@ def multi_menu(request):
         val = menu_dict[key]
         val['class'] = 'hide'
         for per in val['children']:
-
             if per['id'] == request.current_selected_permission:
                 per['class'] = 'active'
                 val['class'] = ''

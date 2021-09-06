@@ -6,7 +6,7 @@ from django.forms import formset_factory
 from django.http import HttpResponse
 from django.shortcuts import render, redirect
 from rbac.forms.menu import MenuForm, SecondMenuForm, PermissionMenuForm, MultiAddPermission, MultiEditPermission
-from rbac.models import Menu, Permission
+from rbac.models import Menu, Permission, UserInfo, Role
 from rbac.service.routers import get_all_url_dict
 from rbac.service.urls import memory_reverse
 
@@ -288,3 +288,81 @@ def multi_permissions_del(request, pk):
         return render(request, 'role_delete.html', {'cancel': url})
     Permission.objects.filter(id=pk).delete()
     return redirect(url)
+
+
+def distribute_permissions(request):
+    user_id = request.GET.get('uid')  # 获取用户id
+    user_object = UserInfo.objects.filter(id=user_id).first()  # 查询用户
+    user_id = user_id if user_object else None  # 判断用户对象是否存在
+
+    role_id = request.GET.get('rid')  # 获取角色id
+    role_object = Role.objects.filter(id=role_id).first()  # 查询用户
+    role_id = role_id if role_object else None  # 判断角色对象是否存在
+
+    if request.method == "POST":
+        post_type = request.POST.get('type')
+
+        if post_type == 'role':  # 更新用户角色
+            role_id_list = request.POST.getlist('roles')  # 获取选中的角色role
+            if not user_object:  # 获取当前的用户
+                return HttpResponse('请选择用户，然后再分配角色！')
+            user_object.roles.set(role_id_list)  # 更新用户和角色的关系
+
+        elif post_type == 'permission':  # 更新角色的权限
+            permission_id_list = request.POST.getlist('permissions')
+            if not role_object:
+                return HttpResponse('请选择角色，然后再分配权限！')
+            role_object.permissions.set(permission_id_list)
+
+    user_has_roles = user_object.roles.all() if user_id else [] # 获取用户的角色
+    user_has_roles_dict = {item.id: None for item in user_has_roles}
+    if role_object:  # 获取选中角色的权限
+        user_has_permissions = role_object.permissions.all()
+        user_has_permissions_dict = {item.id: None for item in user_has_permissions}
+    elif user_object:  # 选择用户未选择角色
+        # 获取选中用户的权限
+        user_has_permissions = user_object.roles.filter(permissions__id__isnull=False).values('id',
+                                                                                              'permissions').distinct()
+
+        user_has_permissions_dict = {item['permissions']: None for item in user_has_permissions}
+    else:
+        user_has_permissions_dict = {}
+
+    all_user_list = UserInfo.objects.all()
+    all_role_list = Role.objects.all()
+
+    # 所有的菜单（一级菜单）
+    all_menu_list = Menu.objects.values('id', 'title')
+    all_menu_dict = {}
+    for item in all_menu_list:
+        item['children'] = []
+        all_menu_dict[item['id']] = item
+
+    # 所有二级菜单
+    all_second_menu_list = Permission.objects.filter(menu__isnull=False).values('id', 'title', 'menu_id')
+    all_second_menu_dict = {}
+    for row in all_second_menu_list:
+        row['children'] = []
+        all_second_menu_dict[row['id']] = row
+        menu_id = row['menu_id']
+        all_menu_dict[menu_id]['children'].append(row)
+
+    # 所有三级菜单（不能做菜单的权限）
+    all_permission_list = Permission.objects.filter(menu__isnull=True).values('id', 'title', 'pid_id')
+    for row in all_permission_list:
+        pid = row['pid_id']
+        if not pid:
+            continue
+        all_second_menu_dict[pid]['children'].append(row)
+
+    result = {
+        'user_list': all_user_list,
+        'role_list': all_role_list,
+        'all_menu_list': all_menu_list,
+        'user_id': user_id,
+        'role_id': role_id,
+        'user_has_roles_dict': user_has_roles_dict,
+        'user_has_permissions_dict': user_has_permissions_dict
+    }
+
+    return render(request, "distribute_permissions.html", result)

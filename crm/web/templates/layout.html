@@ -76,7 +76,7 @@
             background: #efefef;
             background: -webkit-gradient(linear, left bottom, left top, color-stop(0, #efefef), color-stop(1, #fafafa));
             background: -ms-linear-gradient(bottom, #efefef, #fafafa);
-            background: -moz-linear-gradient(center bottom, #efefef 0%, #fafafa 100%);
+            background: -moz-linear-gradient(bottom, #efefef 0%, #fafafa 100%);
             background: -o-linear-gradient(bottom, #efefef, #fafafa);
             filter: progid:dximagetransform.microsoft.gradient(startColorStr='#e3e3e3', EndColorStr='#ffffff');
             -ms-filter: "progid:DXImageTransform.Microsoft.gradient(startColorStr='#fafafa',EndColorStr='#efefef')";
@@ -156,16 +156,10 @@
 </div>
 <div class="pg-body">
     <div class="left-menu">
-        <div class="menu-body">
-        {% block multi_menu %}  {% multi_menu request %}  {% endblock %}
-
-        </div>
+        <div class="menu-body">{% block multi_menu %}  {% multi_menu request %}  {% endblock %} </div>
     </div>
     <div class="right-body">
-        <div>
-            {% block bread_crumb %}  {%  bread_crumb request%}  {% endblock %}
-
-        </div>
+        <div>{% block bread_crumb %}  {% bread_crumb request %}  {% endblock %}</div>
         {% block content %} {% endblock %}
     </div>
 </div>

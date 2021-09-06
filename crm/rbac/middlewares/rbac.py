@@ -3,6 +3,7 @@
 import re
 
 from django.http import HttpResponse
+from django.shortcuts import redirect
 
 from crm import settings
 
@@ -12,17 +13,22 @@ class RbacMiddleware:
     def __init__(self, get_response):
         self.get_response = get_response
 
-    @staticmethod
-    def process_request(request):
+    def process_request(self, request):
+        request.current_selected_permission = None
+        request.url_record = []
+        my_response = self.get_response(request)
+
         current_url = request.path_info
         for valid_url in settings.VALID_URL_LIST:
             if re.match(valid_url, current_url):  # 白名单中的URL无需权限验证即可访问
-                return None
+                return my_response
         permission_dict = request.session.get(settings.PERMISSION_SESSION_KEY)
         if not permission_dict:
-            return HttpResponse("未获取到用户权限信息,请登录!")
+            print("未获取到用户权限信息,请登录!")
+            return redirect("/login/")
         url_record = [{"title": "首页", "url": "#"}]
         flag = False
+
         for item in permission_dict.values():
             reg = f"^{item['url']}$"
             if re.match(reg, current_url):
@@ -40,8 +46,8 @@ class RbacMiddleware:
         request.url_record = url_record
         if not flag:
             return HttpResponse("无权限访问")
+        return my_response
 
     def __call__(self, request):
-        self.process_request(request)
-        response = self.get_response(request)
+        response = self.process_request(request)
         return response
