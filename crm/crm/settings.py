@@ -126,9 +126,21 @@ STATIC_URL = '/static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-# STATICFILES_DIRS = [os.path.join(BASE_DIR, "static"), os.path.join(BASE_DIR, 'web', "static")]
+
+# 添加权限和菜单的session key
 MENU_SESSION_KEY = 'menu_session_key'
 PERMISSION_SESSION_KEY = "permission_url_dict_key"
+
+# 添加无需登录白名单VALID_URL_LIST
 VALID_URL_LIST = ["^/$", '/login/', '/admin/.*']
-AUTO_DISCOVER_EXCLUDE = ['/admin/.*']
+# 添加自动发现URL时,所需要排除的URL
+AUTO_DISCOVER_EXCLUDE =[
+    '/admin/.*',
+    '/login/',
+    '/logout/',
+    '/index/',
+]
+# 需要登录但无需权限的URL
 NO_PERMISSION_LIST = ['/index/', '/logout/', ]
+# 防止点击劫持
+X_FRAME_OPTIONS = 'SAMEORIGIN'
