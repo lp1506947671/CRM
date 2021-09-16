@@ -57,7 +57,7 @@ TEMPLATES = [
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
         'DIRS': [
             os.path.join(BASE_DIR, 'templates'),
-            os.path.join(BASE_DIR, 'rbac','templates'),
+            os.path.join(BASE_DIR, 'rbac', 'templates'),
 
         ],
         'APP_DIRS': True,
@@ -131,3 +131,4 @@ MENU_SESSION_KEY = 'menu_session_key'
 PERMISSION_SESSION_KEY = "permission_url_dict_key"
 VALID_URL_LIST = ["^/$", '/login/', '/admin/.*']
 AUTO_DISCOVER_EXCLUDE = ['/admin/.*']
+NO_PERMISSION_LIST = ['/index/', '/logout/', ]

@@ -19,14 +19,27 @@ class RbacMiddleware:
         my_response = self.get_response(request)
 
         current_url = request.path_info
+        # 访问127.0.0.1:8080页面时直接跳转到登录界面
+        if current_url == "/":
+            return redirect("/login/")
+
         for valid_url in settings.VALID_URL_LIST:
             if re.match(valid_url, current_url):  # 白名单中的URL无需权限验证即可访问
                 return my_response
         permission_dict = request.session.get(settings.PERMISSION_SESSION_KEY)
+
         if not permission_dict:
             print("未获取到用户权限信息,请登录!")
             return redirect("/login/")
         url_record = [{"title": "首页", "url": "#"}]
+
+        # 此处代码进行判断
+        for url in settings.NO_PERMISSION_LIST:
+            if re.match(url, request.path_info):
+                # 需要登录，但无需权限校验
+                request.current_selected_permission = 0
+                request.breadcrumb = url_record
+                return my_response
         flag = False
 
         for item in permission_dict.values():
