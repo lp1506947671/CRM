@@ -118,14 +118,13 @@ USE_TZ = True
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/3.2/howto/static-files/
-
+STATIC_ROOT = os.path.join(os.path.dirname(BASE_DIR), "my_static")
 STATIC_URL = '/static/'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-
 
 # 添加权限和菜单的session key
 MENU_SESSION_KEY = 'menu_session_key'
@@ -134,7 +133,7 @@ PERMISSION_SESSION_KEY = "permission_url_dict_key"
 # 添加无需登录白名单VALID_URL_LIST
 VALID_URL_LIST = ["^/$", '/login/', '/admin/.*']
 # 添加自动发现URL时,所需要排除的URL
-AUTO_DISCOVER_EXCLUDE =[
+AUTO_DISCOVER_EXCLUDE = [
     '/admin/.*',
     '/login/',
     '/logout/',
