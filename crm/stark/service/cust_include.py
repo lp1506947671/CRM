@@ -12,6 +12,12 @@ class StarkHandler:
         self.model_class = model_class
         self.prev = prev
 
+    def get_list_display(self):
+        """给予用户对表的列的自定义扩展,例如：根据用户的不同显示不同的列"""
+        value = []
+        value.extend(self.display_list)
+        return value
+
     def add_view(self, request):
         return HttpResponse("增加")
 
@@ -23,7 +29,7 @@ class StarkHandler:
 
     def list_view(self, request):
         data_list = self.model_class.objects.all()
-        display_columns = self.display_list
+        display_columns = self.get_list_display()
         # 获取表头
         header_list = []
         for key in display_columns:
