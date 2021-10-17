@@ -1,16 +1,33 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+from types import FunctionType
+
 from django.conf.urls import url
 from django.http import HttpResponse
 from django.shortcuts import render
+from django.urls import reverse
+from django.utils.safestring import mark_safe
 
 
 class StarkHandler:
     display_list = []
 
     def __init__(self, model_class, prev):
+        self.stark = stark
         self.model_class = model_class
         self.prev = prev
+
+    def display_edit(self, obj=None, is_header=None):
+        if is_header:
+            return "编辑"
+        name = f"{self.stark.namespace}:{self.url_name('change')}"
+        return mark_safe(f'<a href="{reverse(name, args=(obj.pk,))}">编辑</a>')
+
+    def display_del(self, obj=None, is_header=None):
+        if is_header:
+            return "删除"
+        name = f"{self.stark.namespace}:{self.url_name('del')}"
+        return mark_safe(f'<a href="{reverse(name, args=(obj.pk,))}">删除</a>')
 
     def get_list_display(self):
         """给予用户对表的列的自定义扩展,例如：根据用户的不同显示不同的列"""
@@ -32,16 +49,22 @@ class StarkHandler:
         display_columns = self.get_list_display()
         # 获取表头
         header_list = []
-        for key in display_columns:
-            if display_value := self.model_class._meta.get_field(key).verbose_name:
+        for key_or_func in display_columns:
+            if isinstance(key_or_func, FunctionType):
+                header_list.append(key_or_func(self, obj=None, is_header=True))
+                continue
+            if display_value := self.model_class._meta.get_field(key_or_func).verbose_name:
                 header_list.append(display_value)
         # 获取表内容
         body_list = []
         for row in data_list:
             tr_list = []
             if display_columns:
-                for key in display_columns:
-                    if row_item := getattr(row, key):
+                for key_or_func in display_columns:
+                    if isinstance(key_or_func, FunctionType):
+                        tr_list.append(key_or_func(self, row, is_header=False))
+                        continue
+                    if row_item := getattr(row, key_or_func):
                         tr_list.append(row_item)
             else:
                 # 征集dispaly_list没有配置的情况下的处理
@@ -66,8 +89,8 @@ class StarkHandler:
         patterns = [
             url(r"^list/$", self.list_view, name=self.url_name("list")),
             url(r"^add/$", self.add_view, name=self.url_name("add")),
-            url(r"^change/(\d+)$", self.delete_view, name=self.url_name("change")),
-            url(r"^del/$", self.change_view, name=self.url_name("list")),
+            url(r"^change/(\d+)$", self.change_view, name=self.url_name("change")),
+            url(r"^del/(\d+)/$", self.delete_view, name=self.url_name("del")),
         ]
         patterns.extend(self.extra_url())
         return patterns
