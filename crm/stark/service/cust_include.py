@@ -6,6 +6,8 @@ from django.shortcuts import render
 
 
 class StarkHandler:
+    display_list = []
+
     def __init__(self, model_class, prev):
         self.model_class = model_class
         self.prev = prev
@@ -21,7 +23,28 @@ class StarkHandler:
 
     def list_view(self, request):
         data_list = self.model_class.objects.all()
-        return render(request, 'changelist.html', {'data_list': data_list})
+        display_columns = self.display_list
+        # 获取表头
+        header_list = []
+        for key in display_columns:
+            if display_value := self.model_class._meta.get_field(key).verbose_name:
+                header_list.append(display_value)
+        # 获取表内容
+        body_list = []
+        for row in data_list:
+            tr_list = []
+            if display_columns:
+                for key in display_columns:
+                    if row_item := getattr(row, key):
+                        tr_list.append(row_item)
+            else:
+                # 征集dispaly_list没有配置的情况下的处理
+                tr_list.append(row)
+
+            body_list.append(tr_list)
+
+        return render(request, 'changelist.html', {'header_list': header_list,
+                                                   'body_list': body_list})
 
     def url_name(self, name):
         app_label, model_name = self.model_class._meta.app_label, self.model_class._meta.model_name

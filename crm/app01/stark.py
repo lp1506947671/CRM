@@ -23,18 +23,7 @@ class DepartHandler(StarkHandler):
 
 
 class UserInfoHandler(StarkHandler):
-
-    def get_urls(self):
-        """
-        修改URL
-        :return:
-        """
-        patterns = [
-            url(r'^list/$', self.list_view),
-            url(r'^add/$', self.add_view),
-        ]
-
-        return patterns
+    display_list = ['name', 'email', 'depart']
 
 
 class HostHandler(StarkHandler):

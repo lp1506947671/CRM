@@ -7,11 +7,22 @@
 <body>
 <h1>数据列表</h1>
 <table border="1">
-    {% for row in data_list %}
+     <thead>
+    <tr>
+        {% for item in header_list %}
+            <th>{{ item }}</th>
+        {% endfor %}
+    </tr>
+    </thead>
+    <tbody>
+    {% for row in body_list %}
         <tr>
-            <td>{{ row }}</td>
+            {% for ele in row %}
+                <td>{{ ele }}</td>
+            {% endfor %}
         </tr>
     {% endfor %}
+    </tbody>
 </table>
 </body>
 </html>
