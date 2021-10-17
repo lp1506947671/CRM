@@ -16,8 +16,11 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include, re_path
 
+from stark.service.cust_include import stark
+
 urlpatterns = [
     path('admin/', admin.site.urls),
     re_path('^rbac/', include('rbac.urls', namespace='rbac')),
+    re_path('^stark/',stark.urls),
     re_path('^', include('web.urls'))
 ]
