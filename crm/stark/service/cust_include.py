@@ -72,8 +72,8 @@ class StarkHandler:
 
             body_list.append(tr_list)
 
-        return render(request, 'changelist.html', {'header_list': header_list,
-                                                   'body_list': body_list})
+        return render(request, 'list.html', {'header_list': header_list,
+                                             'body_list': body_list})
 
     def url_name(self, name):
         app_label, model_name = self.model_class._meta.app_label, self.model_class._meta.model_name

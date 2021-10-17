@@ -1,0 +1,25 @@
+{% extends 'layout.html' %}
+{% block bread_crumb %}{% endblock %}
+{% block multi_menu %}{% endblock %}
+{% block content %}
+    <div class="luffy-container">
+        <table class="table table-bordered">
+            <thead>
+            <tr>
+                {% for item in header_list %}
+                    <th>{{ item }}</th>
+                {% endfor %}
+            </tr>
+            </thead>
+            <tbody>
+            {% for row in body_list %}
+                <tr>
+                    {% for ele in row %}
+                        <td>{{ ele }}</td>
+                    {% endfor %}
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% endblock %}
