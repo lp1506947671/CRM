@@ -23,6 +23,9 @@
         </table>
     </div>
 
-    {% load pagination %}
-    {% my_paginator %}
+    <nav>
+        <ul class="pagination">
+            {{ pager.page_html|safe }}
+        </ul>
+    </nav>
 {% endblock %}
