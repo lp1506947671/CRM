@@ -37,8 +37,8 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     "rbac",
     'web',
-    'app01',
     'stark',
+    'app01',
 
 ]
 

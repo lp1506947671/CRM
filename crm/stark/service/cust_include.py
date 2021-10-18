@@ -3,6 +3,7 @@
 from types import FunctionType
 
 from django.conf.urls import url
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.http import HttpResponse
 from django.shortcuts import render
 from django.urls import reverse
@@ -11,11 +12,59 @@ from django.utils.safestring import mark_safe
 
 class StarkHandler:
     display_list = []
+    per_page_count = 1
 
     def __init__(self, model_class, prev):
         self.stark = stark
         self.model_class = model_class
         self.prev = prev
+
+    def my_paginator(self, per_page, current_page):
+        a = self.model_class.objects.all().order_by("pk")
+        paginator1 = Paginator(a, per_page)
+
+        current_page_num = int(current_page)
+        try:
+            current_page = paginator1.page(current_page_num)
+            print("object_list", current_page.object_list)
+        except EmptyPage as e:
+            current_page = paginator1.page(1)
+        except PageNotAnInteger as e:
+            current_page = paginator1.page(paginator1.count)
+
+        # 需求:总页数54,使其永远只显示11页
+        if paginator1.num_pages > 11:
+            if current_page_num - 5 < 1:
+                page_range = range(1, 12)
+            elif current_page_num + 5 > paginator1.num_pages:
+                page_range = range(paginator1.num_pages - 10, paginator1.num_pages + 1)
+            else:
+                page_range = range(current_page_num - 5, current_page_num + 6)
+        else:
+            page_range = paginator1.page_range
+
+        has_previous = current_page.has_previous()
+        previous_page_number = 0
+        if has_previous:
+            previous_page_number = current_page.previous_page_number()
+        has_next = current_page.has_next()
+        next_page_number = 0
+        if has_next:
+            next_page_number = current_page.next_page_number()
+
+        dict1 = {
+            "start": current_page.start_index() - 1,
+            "end": current_page.end_index(),
+            "page_range": page_range,
+            "current_page": current_page,
+            "has_previous": has_previous,
+            "previous_page_number": previous_page_number,
+            'has_next': has_next,
+            'next_page_number': next_page_number
+
+        }
+
+        return dict1
 
     def display_edit(self, obj=None, is_header=None):
         if is_header:
@@ -45,7 +94,9 @@ class StarkHandler:
         return HttpResponse("改变")
 
     def list_view(self, request):
-        data_list = self.model_class.objects.all()
+        current_page_num = request.GET.get("page", 1)
+        paginate_result = self.my_paginator(self.per_page_count, current_page_num)
+        data_list = self.model_class.objects.all()[paginate_result["start"]: paginate_result["end"]]
         display_columns = self.get_list_display()
         # 获取表头
         header_list = []
@@ -71,9 +122,12 @@ class StarkHandler:
                 tr_list.append(row)
 
             body_list.append(tr_list)
-
-        return render(request, 'list.html', {'header_list': header_list,
-                                             'body_list': body_list})
+        result = {'header_list': header_list,
+                  'body_list': body_list,
+                  "current_page_num": current_page_num
+                  }
+        result.update(paginate_result)
+        return render(request, 'list.html', result)
 
     def url_name(self, name):
         app_label, model_name = self.model_class._meta.app_label, self.model_class._meta.model_name
