@@ -23,7 +23,7 @@ class StarkModelForm(forms.ModelForm):
 
 class StarkHandler:
     display_list = []
-    per_page_count = 1
+    per_page_count = 10
     has_add_btn = True  # 是否启用添加按钮
     model_form_class = None
 
@@ -104,10 +104,25 @@ class StarkHandler:
         return render(request, 'change.html', {'form': form})
 
     def delete_view(self, request, pk):
-        return HttpResponse("删除")
+        origin_list_url = self.reverse_list_url()
+        if request.method == 'GET':
+            return render(request, 'delete.html', {'cancel': origin_list_url})
+        self.model_class.objects.filter(pk=pk).delete()
+        return redirect(origin_list_url)
 
     def change_view(self, request, pk):
-        return HttpResponse("改变")
+        current_change_obj = self.model_class.objects.filter(pk=pk).first()
+        if not current_change_obj:
+            return HttpResponse('要修改的数据不存在，请重新选择！')
+        model_form_class = self.get_model_form_class()
+        if request.method == 'GET':
+            form = model_form_class(instance=current_change_obj)
+            return render(request, 'change.html', {"form": form})
+        form = model_form_class(data=request.POST, instance=current_change_obj)
+        if form.is_valid():
+            self.save(form)
+            return redirect(self.reverse_list_url())
+        return render(request, 'change.html', {"form": form})
 
     def list_view(self, request):
         all_count = self.model_class.objects.all().count()

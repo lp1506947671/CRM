@@ -11,11 +11,7 @@ class DepartHandler(StarkHandler):
 
 
 class UserInfoHandler(StarkHandler):
-    display_list = ['name', 'email', 'depart']
-
-    def get_list_display(self):
-        """ 自定义扩展，例如：根据用户的不同显示不同的列"""
-        return ['name', 'age']
+    display_list = ['name', 'age', 'email', 'depart', StarkHandler.display_edit, StarkHandler.display_del]
 
 
 class HostHandler(StarkHandler):
