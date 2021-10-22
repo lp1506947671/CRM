@@ -11,7 +11,7 @@ class DepartHandler(StarkHandler):
 
 
 class UserInfoHandler(StarkHandler):
-    display_list = ['name', 'age', 'email', 'depart', StarkHandler.display_edit, StarkHandler.display_del]
+    display_list = ['id','name', 'age', 'email', 'depart', StarkHandler.display_edit, StarkHandler.display_del]
 
 
 class HostHandler(StarkHandler):

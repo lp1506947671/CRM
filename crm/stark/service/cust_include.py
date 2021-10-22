@@ -26,6 +26,7 @@ class StarkHandler:
     per_page_count = 10
     has_add_btn = True  # 是否启用添加按钮
     model_form_class = None
+    order_list = []
 
     def __init__(self, model_class, prev):
         self.stark = stark
@@ -67,6 +68,9 @@ class StarkHandler:
     def save(self, form, is_update=False):
         """在使用ModelForm保存数据之前预留的钩子方法"""
         form.save()
+
+    def get_order_list(self):
+        return self.order_list or ['-id', ]
 
     def get_add_btn(self):
         if self.has_add_btn:
@@ -125,7 +129,9 @@ class StarkHandler:
         return render(request, 'change.html', {"form": form})
 
     def list_view(self, request):
-        all_count = self.model_class.objects.all().count()
+        order_list = self.get_order_list()
+        query_set = self.model_class.objects.all().order_by(*order_list)
+        all_count = query_set.count()
         current_page_num = request.GET.get("page", 1)
         query_params = request.GET.copy()
         query_params._mutable = True
@@ -136,7 +142,7 @@ class StarkHandler:
             query_params=query_params,
             per_page=self.per_page_count,
         )
-        data_list = self.model_class.objects.all()[pager.start:pager.end]
+        data_list = query_set[pager.start:pager.end]
         display_columns = self.get_list_display()
         # 获取表头
         header_list = []
