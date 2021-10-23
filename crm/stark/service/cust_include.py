@@ -15,11 +15,12 @@ from stark.utils.pagination import Pagination
 
 
 class Option:
-    def __init__(self, filed, condition=None, text_func=None):
+    def __init__(self, filed, condition=None, value_name=None, text_func=None):
         self.filed = filed
         self.condition = condition or {}
         self.text_func = text_func
         self.is_choice = False
+        self.value_name = value_name
 
     def get_condition(self, request, *args, **kwargs):
         return self.condition
@@ -29,7 +30,8 @@ class Option:
         verbose_name = field_obj.verbose_name
         if isinstance(field_obj, ForeignKey) or isinstance(field_obj, ManyToManyField):
             db_condition = self.get_condition(request, *args, **kwargs)
-            search_group_list = field_obj.model.objects.filter(**db_condition)
+            search_group_list = field_obj.model.objects.filter(**db_condition).values_list(self.value_name).distinct()
+            search_group_list = [item[0] for item in search_group_list]
         else:
             self.is_choice = True
             search_group_list = field_obj.choices

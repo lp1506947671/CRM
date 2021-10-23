@@ -16,7 +16,8 @@ class UserInfoHandler(StarkHandler):
     # 书写外键的搜索条件时需要注意
     search_list = ['name__contains', 'email__contains']
     action_list = [StarkHandler.action_multi_delete]
-    search_group = [Option('depart'), Option('sex', condition={'id_gt': 1})]
+    search_group = [
+        Option('depart',value_name="depart__title"), Option('sex', condition={'id_gt': 1})]
 
 
 class HostHandler(StarkHandler):
