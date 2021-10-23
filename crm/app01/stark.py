@@ -11,7 +11,9 @@ class DepartHandler(StarkHandler):
 
 
 class UserInfoHandler(StarkHandler):
-    display_list = ['id','name', 'age', 'email', 'depart', StarkHandler.display_edit, StarkHandler.display_del]
+    display_list = ['id', 'name', 'age', 'email', 'depart', StarkHandler.display_edit, StarkHandler.display_del]
+    # 书写外键的搜索条件时需要注意
+    search_list = ['name__contains', 'email__contains']
 
 
 class HostHandler(StarkHandler):

@@ -3,6 +3,23 @@
 {% block multi_menu %}{% endblock %}
 {% block content %}
     <div class="luffy-container">
+        {% if search_list %}
+            <div style="float: right">
+
+                <form method="post" class="form-inline">
+                    {% csrf_token %}
+                    <div class="form-group">
+                        <input class="form-control" type="text" name="q" value="{{ search_value }}"
+                               placeholder="请输入查询参数">
+                        <button class="btn btn-primary" type="submit">
+                            <i class="fa fa-search" aria-hidden="true"></i>
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+
+        {% endif %}
         {% if add_btn %}
             <div style="margin: 5px 0;">
                 {{ add_btn|safe }}

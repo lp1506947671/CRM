@@ -5,6 +5,7 @@ from types import FunctionType
 
 from django import forms
 from django.conf.urls import url
+from django.db.models import Q
 from django.http import HttpResponse, QueryDict
 from django.shortcuts import render, redirect
 from django.urls import reverse
@@ -27,6 +28,7 @@ class StarkHandler:
     has_add_btn = True  # 是否启用添加按钮
     model_form_class = None
     order_list = []
+    search_list = []  # 查询字段
 
     def __init__(self, model_class, prev):
         self.stark = stark
@@ -68,6 +70,9 @@ class StarkHandler:
     def save(self, form, is_update=False):
         """在使用ModelForm保存数据之前预留的钩子方法"""
         form.save()
+
+    def get_search_list(self):
+        return self.search_list
 
     def get_order_list(self):
         return self.order_list or ['-id', ]
@@ -129,8 +134,18 @@ class StarkHandler:
         return render(request, 'change.html', {"form": form})
 
     def list_view(self, request):
+        # 搜索
+        search_list = self.get_search_list()
+        search_value = request.POST.get('q', '')
+        conn = Q()
+        conn.connector = "OR"
+        if search_value:
+            for item in search_list:
+                conn.children.append((item, search_value))
+
+        # 排序
         order_list = self.get_order_list()
-        query_set = self.model_class.objects.all().order_by(*order_list)
+        query_set = self.model_class.objects.filter(conn).order_by(*order_list)
         all_count = query_set.count()
         current_page_num = request.GET.get("page", 1)
         query_params = request.GET.copy()
@@ -174,7 +189,9 @@ class StarkHandler:
                   'body_list': body_list,
                   "current_page_num": current_page_num,
                   'pager': pager,
-                  'add_btn': add_btn
+                  'add_btn': add_btn,
+                  'search_value': search_value,
+                  'search_list': search_list
                   }
         return render(request, 'list.html', result)
 
