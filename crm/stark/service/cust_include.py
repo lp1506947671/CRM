@@ -169,7 +169,10 @@ class StarkHandler:
         if request.method == 'GET':
             form = model_form_class()
             return render(request, 'change.html', {'form': form})
-        form = model_form_class(data=request.POST)
+        data = request.POST.copy()
+        # data._mutable = True
+        # data['sex'] = int(data['sex'])
+        form = model_form_class(data=data)
         if form.is_valid():
             self.save(form, is_update=False)
             # 在数据库保存成功后，跳转回列表页面(携带原来的参数)。

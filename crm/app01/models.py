@@ -29,10 +29,10 @@ class Role(models.Model):
 
 class UserInfo(models.Model):
     """用户表"""
-    my_choices = [(1, '男'), (2, "女")]
+    my_choices = [("1", '男'), ("2", "女")]
     name = models.CharField(verbose_name='姓名', max_length=32)
     age = models.CharField(verbose_name='年龄', max_length=32)
-    sex = models.CharField(choices=my_choices, default=1, max_length=32 ,verbose_name='性别')
+    sex = models.CharField(choices=my_choices, default="1", max_length=32 ,verbose_name='性别')
     email = models.CharField(verbose_name='邮箱', max_length=32)
     depart = models.ForeignKey(verbose_name='部门', to='Depart', on_delete=models.CASCADE)
 
