@@ -3,7 +3,7 @@
 from django.conf.urls import url
 from django.http import HttpResponse
 from app01 import models
-from stark.service.cust_include import StarkHandler, stark
+from stark.service.cust_include import StarkHandler, stark, Option
 
 
 class DepartHandler(StarkHandler):
@@ -11,10 +11,12 @@ class DepartHandler(StarkHandler):
 
 
 class UserInfoHandler(StarkHandler):
-    display_list = [StarkHandler.display_checkbox,'id', 'name', 'age', 'email', 'depart', StarkHandler.display_edit, StarkHandler.display_del]
+    display_list = [StarkHandler.display_checkbox, 'id', 'name', 'sex', 'age', 'email', 'depart',
+                    StarkHandler.display_edit, StarkHandler.display_del]
     # 书写外键的搜索条件时需要注意
     search_list = ['name__contains', 'email__contains']
-    action_list=[StarkHandler.action_multi_delete]
+    action_list = [StarkHandler.action_multi_delete]
+    search_group = [Option('depart'), Option('sex', condition={'id_gt': 1})]
 
 
 class HostHandler(StarkHandler):

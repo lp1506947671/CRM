@@ -5,13 +5,58 @@ from types import FunctionType
 
 from django import forms
 from django.conf.urls import url
-from django.db.models import Q
+from django.db.models import Q, ForeignKey, ManyToManyField
 from django.http import HttpResponse, QueryDict
 from django.shortcuts import render, redirect
 from django.urls import reverse
 from django.utils.safestring import mark_safe
 
 from stark.utils.pagination import Pagination
+
+
+class Option:
+    def __init__(self, filed, condition=None, text_func=None):
+        self.filed = filed
+        self.condition = condition or {}
+        self.text_func = text_func
+        self.is_choice = False
+
+    def get_condition(self, request, *args, **kwargs):
+        return self.condition
+
+    def run(self, model_class, request, *args, **kwargs):
+        field_obj = model_class._meta.get_field(self.filed)
+        verbose_name = field_obj.verbose_name
+        if isinstance(field_obj, ForeignKey) or isinstance(field_obj, ManyToManyField):
+            db_condition = self.get_condition(request, *args, **kwargs)
+            search_group_list = field_obj.model.objects.filter(**db_condition)
+        else:
+            self.is_choice = True
+            search_group_list = field_obj.choices
+
+        return SearchGroupItem(verbose_name, self.get_text(search_group_list))
+
+    def get_text(self, search_group_list):
+        if self.text_func:
+            return [self.text_func(item) for item in search_group_list]
+        if self.is_choice:
+            return [item[1] for item in search_group_list]
+        return [str(item) for item in search_group_list]
+
+
+class SearchGroupItem:
+    def __init__(self, title, search_group_list):
+        self.title = title
+        self.search_group_list = search_group_list
+
+    def __iter__(self):
+        button_html = '<li><a class="btn btn-default btn-sm" href="%s" role="button" >%s</a></li>'
+        yield '<ul class="list-inline">'
+        yield f'<li><strong>{self.title}</strong></li>'
+        yield button_html % ('#', '全部')
+        for item in self.search_group_list:
+            yield button_html % ('#', item)
+        yield '</ul>'
 
 
 class StarkModelForm(forms.ModelForm):
@@ -30,12 +75,16 @@ class StarkHandler:
     order_list = []
     search_list = []  # 查询字段
     action_list = []
+    search_group = []
 
     def __init__(self, model_class, prev):
         self.stark = stark
         self.model_class = model_class
         self.prev = prev
         self.request = None
+
+    def get_search_group(self):
+        return self.search_group
 
     def get_action_list(self):
         return self.action_list
@@ -207,16 +256,24 @@ class StarkHandler:
                 tr_list.append(row)
 
             body_list.append(tr_list)
+        # 组合搜索
+
+        search_group = []
+        search_columns = self.get_search_group()
+        for search_item in search_columns:
+            row = search_item.run(self.model_class, request, *args, **kwargs)
+            search_group.append(row)
+
         # 添加按钮
-        add_btn = self.get_add_btn()
         result = {'header_list': header_list,
                   'body_list': body_list,
                   "current_page_num": current_page_num,
                   'pager': pager,
-                  'add_btn': add_btn,
+                  'add_btn': self.get_add_btn(),
                   'search_value': search_value,
                   'search_list': search_list,
-                  'action_dict': action_dict
+                  'action_dict': action_dict,
+                  'search_group': search_group
                   }
         return render(request, 'list.html', result)
 

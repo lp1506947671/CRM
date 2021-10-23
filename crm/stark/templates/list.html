@@ -3,6 +3,24 @@
 {% block multi_menu %}{% endblock %}
 {% block content %}
     <div class="luffy-container">
+        {% if search_group %}
+
+            <div class="panel panel-default">
+                <div class="panel-heading"><span class="glyphicon glyphicon-glass" aria-hidden="true"></span>快速筛选</div>
+                <div class="panel-body " style="padding-bottom: 0;">
+                    {% for row in search_group %}
+                        <div class="list-inline">
+                         {% for foo in row %}
+                            {{ foo|safe }}
+                        {% endfor %}
+                        </div>
+
+                    {% endfor %}
+                </div>
+            </div>
+
+        {% endif %}
+
         {% if search_list %}
             <div style="float: right">
                 <form method="get" class="form-inline">
