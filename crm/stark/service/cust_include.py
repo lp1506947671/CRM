@@ -29,12 +29,33 @@ class StarkHandler:
     model_form_class = None
     order_list = []
     search_list = []  # 查询字段
+    action_list = []
 
     def __init__(self, model_class, prev):
         self.stark = stark
         self.model_class = model_class
         self.prev = prev
         self.request = None
+
+    def get_action_list(self):
+        return self.action_list
+
+    def get_search_list(self):
+        return self.search_list
+
+    def get_order_list(self):
+        return self.order_list or ['-id', ]
+
+    def get_add_btn(self):
+        if self.has_add_btn:
+            return "<a class='btn btn-primary' href='%s'>添加</a>" % self.reverse_add_url()
+        return None
+
+    def get_list_display(self):
+        """给予用户对表的列的自定义扩展,例如：根据用户的不同显示不同的列"""
+        value = []
+        value.extend(self.display_list)
+        return value
 
     def get_model_form_class(self):
         if self.model_form_class:
@@ -71,22 +92,11 @@ class StarkHandler:
         """在使用ModelForm保存数据之前预留的钩子方法"""
         form.save()
 
-    def get_search_list(self):
-        return self.search_list
+    def action_multi_delete(self, request):
+        pk_list = request.POST.getlist('pk')
+        self.model_class.objects.filter(id__in=pk_list).delete()
 
-    def get_order_list(self):
-        return self.order_list or ['-id', ]
-
-    def get_add_btn(self):
-        if self.has_add_btn:
-            return "<a class='btn btn-primary' href='%s'>添加</a>" % self.reverse_add_url()
-        return None
-
-    def get_list_display(self):
-        """给予用户对表的列的自定义扩展,例如：根据用户的不同显示不同的列"""
-        value = []
-        value.extend(self.display_list)
-        return value
+    action_multi_delete.text = "批量删除"
 
     def display_edit(self, obj=None, is_header=None):
         if is_header:
@@ -99,6 +109,11 @@ class StarkHandler:
             return "删除"
         name = f"{self.stark.namespace}:{self.url_name('del')}"
         return mark_safe(f'<a href="{reverse(name, args=(obj.pk,))}">删除</a>')
+
+    def display_checkbox(self, obj=None, is_header=None):
+        if is_header:
+            return "选择"
+        return mark_safe(f'<input type="checkbox" name="pk" value="{obj.pk}">')
 
     def add_view(self, request):
         model_form_class = self.get_model_form_class()
@@ -119,7 +134,7 @@ class StarkHandler:
         self.model_class.objects.filter(pk=pk).delete()
         return redirect(origin_list_url)
 
-    def change_view(self, request, pk):
+    def change_view(self, request, pk, *args, **kwargs):
         current_change_obj = self.model_class.objects.filter(pk=pk).first()
         if not current_change_obj:
             return HttpResponse('要修改的数据不存在，请重新选择！')
@@ -133,10 +148,19 @@ class StarkHandler:
             return redirect(self.reverse_list_url())
         return render(request, 'change.html', {"form": form})
 
-    def list_view(self, request):
+    def list_view(self, request, *args, **kwargs):
+        # 批量操作
+        action_list = self.get_action_list()
+        action_dict = {item.__name__: item.text for item in action_list}
+        if request.method == "POST":
+            action_name = request.POST.get('action')
+            if action_name != '' and action_name in action_dict:
+                action_response = getattr(self, action_name)(request, *args, **kwargs)
+                if action_response:
+                    return action_response
         # 搜索
         search_list = self.get_search_list()
-        search_value = request.POST.get('q', '')
+        search_value = request.GET.get('q', '')
         conn = Q()
         conn.connector = "OR"
         if search_value:
@@ -191,7 +215,8 @@ class StarkHandler:
                   'pager': pager,
                   'add_btn': add_btn,
                   'search_value': search_value,
-                  'search_list': search_list
+                  'search_list': search_list,
+                  'action_dict': action_dict
                   }
         return render(request, 'list.html', result)
 

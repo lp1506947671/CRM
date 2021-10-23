@@ -11,9 +11,10 @@ class DepartHandler(StarkHandler):
 
 
 class UserInfoHandler(StarkHandler):
-    display_list = ['id', 'name', 'age', 'email', 'depart', StarkHandler.display_edit, StarkHandler.display_del]
+    display_list = [StarkHandler.display_checkbox,'id', 'name', 'age', 'email', 'depart', StarkHandler.display_edit, StarkHandler.display_del]
     # 书写外键的搜索条件时需要注意
     search_list = ['name__contains', 'email__contains']
+    action_list=[StarkHandler.action_multi_delete]
 
 
 class HostHandler(StarkHandler):
