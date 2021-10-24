@@ -14,51 +14,63 @@ from django.utils.safestring import mark_safe
 from stark.utils.pagination import Pagination
 
 
+class SearchGroupItem:
+    def __init__(self, field, title, search_group_dict, total_query_dict):
+        self.field = field
+        self.title = title
+        self.search_group_dict = search_group_dict
+        self.total_query_dict = total_query_dict
+
+    def __iter__(self):
+        button_html = '<li><a class="btn btn-default btn-sm %s" href="?%s" role="button" >%s</a></li>'
+        yield '<ul class="list-inline">'
+        yield f'<li><strong>{self.title}</strong></li>'
+        origin_value_list = self.total_query_dict.get(self.field, [])
+        if not origin_value_list:
+            yield button_html % ('btn-primary', '#', '全部')
+            for key, value in self.search_group_dict.items():
+                self.total_query_dict[self.field] = key
+                yield button_html % ('', self.total_query_dict.urlencode(), value)
+        else:
+            yield button_html % ('', '#', '全部')
+            for key, value in self.search_group_dict.items():
+                self.total_query_dict[self.field] = key
+                if str(key) in origin_value_list:
+                    self.total_query_dict.pop(self.field)
+                    yield button_html % ('btn-primary', self.total_query_dict.urlencode(), value)
+                    continue
+                yield button_html % ('', self.total_query_dict.urlencode(), value)
+        yield '</ul>'
+
+
 class Option:
-    def __init__(self, filed, condition=None, value_name=None, text_func=None):
-        self.filed = filed
+    def __init__(self, field, condition=None, value_name=None, text_func=None, value_func=None):
+        self.field = field
         self.condition = condition or {}
         self.text_func = text_func
-        self.is_choice = False
         self.value_name = value_name
+        self.value_func = value_func
 
     def get_condition(self, request, *args, **kwargs):
         return self.condition
 
     def run(self, model_class, request, *args, **kwargs):
-        field_obj = model_class._meta.get_field(self.filed)
+        field_obj = model_class._meta.get_field(self.field)
         verbose_name = field_obj.verbose_name
         if isinstance(field_obj, ForeignKey) or isinstance(field_obj, ManyToManyField):
             db_condition = self.get_condition(request, *args, **kwargs)
-            search_group_list = field_obj.model.objects.filter(**db_condition).values_list(self.value_name).distinct()
-            search_group_list = [item[0] for item in search_group_list]
+            search_group_list = field_obj.model.objects.filter(**db_condition).values_list(*self.value_name).distinct()
         else:
-            self.is_choice = True
             search_group_list = field_obj.choices
-
-        return SearchGroupItem(verbose_name, self.get_text(search_group_list))
+        search_group_dict = self.get_text(search_group_list)
+        total_query_dict = request.GET.copy()
+        total_query_dict._mutable = True
+        return SearchGroupItem(self.field, verbose_name, search_group_dict, total_query_dict)
 
     def get_text(self, search_group_list):
         if self.text_func:
-            return [self.text_func(item) for item in search_group_list]
-        if self.is_choice:
-            return [item[1] for item in search_group_list]
-        return [str(item) for item in search_group_list]
-
-
-class SearchGroupItem:
-    def __init__(self, title, search_group_list):
-        self.title = title
-        self.search_group_list = search_group_list
-
-    def __iter__(self):
-        button_html = '<li><a class="btn btn-default btn-sm" href="%s" role="button" >%s</a></li>'
-        yield '<ul class="list-inline">'
-        yield f'<li><strong>{self.title}</strong></li>'
-        yield button_html % ('#', '全部')
-        for item in self.search_group_list:
-            yield button_html % ('#', item)
-        yield '</ul>'
+            return {self.text_func(item): self.value_func(item) for item in search_group_list}
+        return {item[0]: item[1] for item in search_group_list}
 
 
 class StarkModelForm(forms.ModelForm):
@@ -84,6 +96,16 @@ class StarkHandler:
         self.model_class = model_class
         self.prev = prev
         self.request = None
+
+    def get_group_search_condition(self, request):
+
+        condition = {}
+        for item in self.get_search_group():
+            query_value = request.GET.get(item.field)
+            if not query_value:
+                continue
+            condition[f'{item.field}__in'] = query_value
+        return condition
 
     def get_search_group(self):
         return self.search_group
@@ -172,8 +194,6 @@ class StarkHandler:
             form = model_form_class()
             return render(request, 'change.html', {'form': form})
         data = request.POST.copy()
-        # data._mutable = True
-        # data['sex'] = int(data['sex'])
         form = model_form_class(data=data)
         if form.is_valid():
             self.save(form, is_update=False)
@@ -221,9 +241,10 @@ class StarkHandler:
             for item in search_list:
                 conn.children.append((item, search_value))
 
+        search_group_condition = self.get_group_search_condition(request)
         # 排序
         order_list = self.get_order_list()
-        query_set = self.model_class.objects.filter(conn).order_by(*order_list)
+        query_set = self.model_class.objects.filter(conn).filter(**search_group_condition).order_by(*order_list)
         all_count = query_set.count()
         current_page_num = request.GET.get("page", 1)
         query_params = request.GET.copy()
