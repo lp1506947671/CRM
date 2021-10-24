@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 import functools
+from copy import deepcopy
 from types import FunctionType
 
 from django import forms
@@ -15,37 +16,52 @@ from stark.utils.pagination import Pagination
 
 
 class SearchGroupItem:
-    def __init__(self, field, title, search_group_dict, total_query_dict):
+    def __init__(self, field, title, search_group_dict, total_query_dict, **kwargs):
         self.field = field
         self.title = title
         self.search_group_dict = search_group_dict
         self.total_query_dict = total_query_dict
+        self.is_multi = kwargs.get('is_multi', False)
 
     def __iter__(self):
+
         button_html = '<li><a class="btn btn-default btn-sm %s" href="?%s" role="button" >%s</a></li>'
         yield '<ul class="list-inline">'
         yield f'<li><strong>{self.title}</strong></li>'
-        origin_value_list = self.total_query_dict.get(self.field, [])
+
+        origin_value_list = self.total_query_dict.getlist(self.field)
         if not origin_value_list:
             yield button_html % ('btn-primary', '#', '全部')
-            for key, value in self.search_group_dict.items():
-                self.total_query_dict[self.field] = key
-                yield button_html % ('', self.total_query_dict.urlencode(), value)
         else:
             yield button_html % ('', '#', '全部')
-            for key, value in self.search_group_dict.items():
+
+        for key, value in self.search_group_dict.items():
+            key = str(key)
+            if not self.is_multi:
                 self.total_query_dict[self.field] = key
-                if str(key) in origin_value_list:
+                if key in origin_value_list:
                     self.total_query_dict.pop(self.field)
                     yield button_html % ('btn-primary', self.total_query_dict.urlencode(), value)
                     continue
                 yield button_html % ('', self.total_query_dict.urlencode(), value)
+                continue
+            query_item = deepcopy(origin_value_list)
+            if key in origin_value_list:
+                query_item.remove(key)
+                self.total_query_dict.setlist(self.field,  query_item)
+                yield button_html % ('btn-primary', self.total_query_dict.urlencode(), value)
+            else:
+                query_item.append(key)
+                self.total_query_dict.setlist(self.field, query_item)
+                yield button_html % ('', self.total_query_dict.urlencode(), value)
+
         yield '</ul>'
 
 
 class Option:
-    def __init__(self, field, condition=None, value_name=None, text_func=None, value_func=None):
+    def __init__(self, field, is_multi=False, condition=None, value_name=None, text_func=None, value_func=None):
         self.field = field
+        self.is_multi = is_multi
         self.condition = condition or {}
         self.text_func = text_func
         self.value_name = value_name
@@ -65,7 +81,8 @@ class Option:
         search_group_dict = self.get_text(search_group_list)
         total_query_dict = request.GET.copy()
         total_query_dict._mutable = True
-        return SearchGroupItem(self.field, verbose_name, search_group_dict, total_query_dict)
+        kwargs = {'is_multi': self.is_multi}
+        return SearchGroupItem(self.field, verbose_name, search_group_dict, total_query_dict, **kwargs)
 
     def get_text(self, search_group_list):
         if self.text_func:

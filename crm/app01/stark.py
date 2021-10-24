@@ -17,7 +17,8 @@ class UserInfoHandler(StarkHandler):
     search_list = ['name__contains', 'email__contains']
     action_list = [StarkHandler.action_multi_delete]
     search_group = [
-        Option('depart', value_name=("depart__id", "depart__title")), Option('sex', condition={'id_gt': 1})]
+        Option('depart', is_multi=True, value_name=("depart__id", "depart__title")),
+        Option('sex', condition={'id_gt': 1})]
 
 
 class HostHandler(StarkHandler):
